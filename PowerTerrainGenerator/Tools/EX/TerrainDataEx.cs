@@ -161,8 +161,8 @@ namespace PowerUtilities
                         // set alpha[x,y,z,w]
                         for (int layerId = 0; layerId < terrainLayers; layerId++)
                         {
-                            var pixelX = Mathf.RoundToInt(uv.x * controlMapRes);
-                            var pixelY = Mathf.RoundToInt(uv.y * controlMapRes);
+                            var pixelX = Mathf.FloorToInt(uv.x * controlMapRes);
+                            var pixelY = Mathf.FloorToInt(uv.y * controlMapRes);
                             map[y, x, layerId] = colors[pixelX + pixelY * controlMapRes][layerId];
 
                         }
