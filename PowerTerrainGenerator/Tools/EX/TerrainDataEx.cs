@@ -130,12 +130,12 @@ namespace PowerUtilities
             if (controlMaps == null || controlMaps.Length == 0)
                 return;
 
-            // check terrain layers
-            var controlMapLayers = controlMaps.Length * 4;
-            var terrainLayers = td.alphamapLayers;
-            if (terrainLayers < controlMapLayers)
+            // check terrain layers, one controlmap control 4 splatmaps
+            var controlMapLayers = controlMaps.Length * td.alphamapLayers;
+            var alphamapLayers = td.alphamapLayers;
+            if (alphamapLayers < controlMapLayers)
             {
-                Debug.Log(string.Format("Warning ! terrainData's alphamapLayers < {0}, need add terrainLayers!", controlMapLayers));
+                throw new Exception(string.Format($"Warning ! terrainData's alphamapLayers < {controlMapLayers}, need add terrainLayers!"));
             }
 
             controlMaps = controlMaps.Where(c => c).ToArray();
@@ -159,12 +159,11 @@ namespace PowerUtilities
                         uv.x = (float)x / res;
 
                         // set alpha[x,y,z,w]
-                        for (int layerId = 0; layerId < terrainLayers; layerId++)
+                        for (int layerId = 0; layerId < alphamapLayers; layerId++)
                         {
                             var pixelX = Mathf.FloorToInt(uv.x * controlMapRes);
                             var pixelY = Mathf.FloorToInt(uv.y * controlMapRes);
                             map[y, x, layerId] = colors[pixelX + pixelY * controlMapRes][layerId];
-
                         }
                     }
                 }

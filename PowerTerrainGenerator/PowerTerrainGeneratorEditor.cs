@@ -395,6 +395,10 @@ namespace PowerUtilities
             if (terrains == null || terrainLayers == null || splitedControlMaps == null)
                 return;
 
+            if(terrains.Count != splitedControlMaps.Count)
+            {
+                throw new Exception($"Warning! Terrain count:{terrains.Count} != splitedControlMaps count {splitedControlMaps.Count}");
+            }
             //
             var controlMapCountInTerrainTile = splitedControlMaps.Count / controlMapLayers;
 
