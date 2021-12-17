@@ -271,11 +271,45 @@ namespace PowerUtilities
                     SavePrefabs(inst.generatedTerrainList,inst.prefabSavePath,inst.isCreateSubFolder);
                 }
                 EditorGUILayout.EndVertical();
+
+                EditorGUILayout.BeginVertical("Box");
+                if(GUILayout.Button("Export Heightmaps"))
+                {
+                    ExportHeightmaps(inst.generatedTerrainList, inst.prefabSavePath, inst.isCreateSubFolder);
+                }
+                EditorGUILayout.EndVertical();
             }
             EditorGUI.EndDisabledGroup();
 
         }
 
+        private void ExportHeightmaps(List<Terrain> generatedTerrainList,string assetFolder,bool isCreateSubFolder)
+        {
+            if (generatedTerrainList == null || generatedTerrainList.Count == 0)
+            {
+                return;
+            }
+            PathTools.CreateAbsFolderPath(assetFolder);
+
+            var exportFolder = assetFolder;
+            if (isCreateSubFolder)
+                exportFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "TerrainHeightmaps"));
+
+            var absExportFolder = PathTools.GetAssetAbsPath(exportFolder);
+
+            for (int i = 0; i < generatedTerrainList.Count; i++)
+            {
+                var terrain = generatedTerrainList[i];
+                var td = terrain.terrainData;
+                var tex = td.GetHeightmap();
+                File.WriteAllBytes($"{absExportFolder}/{terrain.name}.tga", tex.EncodeToTGA());
+
+                EditorUtility.DisplayProgressBar("Export Heightmaps", "", i / (float)generatedTerrainList.Count);
+            }
+            AssetDatabase.Refresh();
+            EditorUtility.ClearProgressBar();
+            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(exportFolder));
+        }
 
         void DrawGenerateTerrainUI()
         {
@@ -395,10 +429,6 @@ namespace PowerUtilities
             if (terrains == null || terrainLayers == null || splitedControlMaps == null)
                 return;
 
-            if(terrains.Count != splitedControlMaps.Count)
-            {
-                throw new Exception($"Warning! Terrain count:{terrains.Count} != splitedControlMaps count {splitedControlMaps.Count}");
-            }
             //
             var controlMapCountInTerrainTile = splitedControlMaps.Count / controlMapLayers;
 

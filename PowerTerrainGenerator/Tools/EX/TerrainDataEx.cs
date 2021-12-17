@@ -108,7 +108,14 @@ namespace PowerUtilities
             td.DirtyHeightmapRegion(new RectInt(0, 0, td.heightmapResolution, td.heightmapResolution), TerrainHeightmapSyncControl.HeightAndLod);
         }
 
-
+        public static Texture2D GetHeightmap(this TerrainData td)
+        {
+            var tex = new Texture2D(td.heightmapResolution, td.heightmapResolution, TextureFormat.R16, false, true);
+            Graphics.SetRenderTarget(td.heightmapTexture);
+            tex.ReadPixels(new Rect(0, 0, td.heightmapResolution, td.heightmapResolution), 0, 0);
+            Graphics.SetRenderTarget(null);
+            return tex;
+        }
         /// <summary>
         /// 
         /// terrainData's alphamapLayers must >= controlMaps.length * 4
