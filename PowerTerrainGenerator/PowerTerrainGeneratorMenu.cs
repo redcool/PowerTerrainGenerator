@@ -7,7 +7,7 @@ namespace PowerUtilities {
 
     public class PowerTerrainGeneratorMenu
     {
-        const string ROOT_PATH = "PowerUtilities";
+        public const string ROOT_PATH = "PowerUtilities";
 
         [MenuItem(ROOT_PATH + "/Terrain/Add PowerTerrainGenerator")]
         static void ShowMenu()

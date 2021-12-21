@@ -275,7 +275,11 @@ namespace PowerUtilities
                 EditorGUILayout.BeginVertical("Box");
                 if(GUILayout.Button("Export Heightmaps"))
                 {
-                    ExportHeightmaps(inst.generatedTerrainList, inst.prefabSavePath, inst.isCreateSubFolder);
+                    ExportTerrainInfos(inst.generatedTerrainList, inst.prefabSavePath,"TerrainHeightmaps", inst.isCreateSubFolder,inst.heightMapCountInRow,ExportHeightmap);
+                }
+                if(GUILayout.Button("Export Controlmaps"))
+                {
+                    ExportTerrainInfos(inst.generatedTerrainList, inst.prefabSavePath, "TerrainControlmaps", inst.isCreateSubFolder, inst.heightMapCountInRow, ExportControlmaps);
                 }
                 EditorGUILayout.EndVertical();
             }
@@ -283,7 +287,8 @@ namespace PowerUtilities
 
         }
 
-        private void ExportHeightmaps(List<Terrain> generatedTerrainList,string assetFolder,bool isCreateSubFolder)
+        private void ExportTerrainInfos(List<Terrain> generatedTerrainList,string assetFolder,string assetSubFolder,bool isCreateSubFolder,int heightmapCountInRow,
+            Action<Terrain,string> exportAction)
         {
             if (generatedTerrainList == null || generatedTerrainList.Count == 0)
             {
@@ -293,22 +298,38 @@ namespace PowerUtilities
 
             var exportFolder = assetFolder;
             if (isCreateSubFolder)
-                exportFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "TerrainHeightmaps"));
+                exportFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, assetSubFolder));
 
             var absExportFolder = PathTools.GetAssetAbsPath(exportFolder);
 
             for (int i = 0; i < generatedTerrainList.Count; i++)
             {
                 var terrain = generatedTerrainList[i];
-                var td = terrain.terrainData;
-                var tex = td.GetHeightmap();
-                File.WriteAllBytes($"{absExportFolder}/{terrain.name}.tga", tex.EncodeToTGA());
+                exportAction?.Invoke(terrain, absExportFolder);
 
                 EditorUtility.DisplayProgressBar("Export Heightmaps", "", i / (float)generatedTerrainList.Count);
             }
             AssetDatabase.Refresh();
             EditorUtility.ClearProgressBar();
             EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(exportFolder));
+        }
+
+        static void ExportHeightmap(Terrain terrain, string absExportFolder)
+        {
+            var td = terrain.terrainData;
+            var tex = td.GetHeightmap();
+            File.WriteAllBytes($"{absExportFolder}/{terrain.name}.tga", tex.EncodeToTGA());
+        }
+
+        static void ExportControlmaps(Terrain terrain, string absExportFolder)
+        {
+            var td = terrain.terrainData;
+
+            for (int j = 0; j < td.alphamapTextureCount; j++)
+            {
+                var tex = td.GetAlphamapTexture(j);
+                File.WriteAllBytes($"{absExportFolder}/{terrain.name}_{j}.tga", tex.EncodeToTGA());
+            }
         }
 
         void DrawGenerateTerrainUI()

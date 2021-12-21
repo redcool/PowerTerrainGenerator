@@ -108,14 +108,29 @@ namespace PowerUtilities
             td.DirtyHeightmapRegion(new RectInt(0, 0, td.heightmapResolution, td.heightmapResolution), TerrainHeightmapSyncControl.HeightAndLod);
         }
 
+        /// <summary>
+        /// return texture2d's width = heightmapResolution - 1
+        /// </summary>
+        /// <param name="td"></param>
+        /// <returns></returns>
         public static Texture2D GetHeightmap(this TerrainData td)
         {
-            var tex = new Texture2D(td.heightmapResolution, td.heightmapResolution, TextureFormat.R16, false, true);
-            Graphics.SetRenderTarget(td.heightmapTexture);
-            tex.ReadPixels(new Rect(0, 0, td.heightmapResolution, td.heightmapResolution), 0, 0);
-            Graphics.SetRenderTarget(null);
+            var hmSize = td.heightmapResolution - 1;
+            var tex = new Texture2D(hmSize, hmSize, TextureFormat.R16, false, true);
+            FillTextureWithHeightmap(td, tex, 0, 0);
             return tex;
         }
+
+        public static void FillTextureWithHeightmap(this TerrainData td,Texture2D bigTexture,int destX,int destY)
+        {
+            var hmSize = td.heightmapResolution - 1;
+            Graphics.SetRenderTarget(td.heightmapTexture);
+            bigTexture.ReadPixels(new Rect(0, 0, hmSize, hmSize), destX, destY);
+
+            Graphics.SetRenderTarget(null);
+        }
+
+
         /// <summary>
         /// 
         /// terrainData's alphamapLayers must >= controlMaps.length * 4

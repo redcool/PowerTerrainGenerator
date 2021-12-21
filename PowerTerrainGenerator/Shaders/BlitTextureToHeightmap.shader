@@ -54,7 +54,6 @@ Shader "Hidden/Terrain/BlitTextureToHeightmap"
                 float4 hm = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, i.uv);
                 // return GammaToLinearSpaceExact(hm.x);
                 // hm.xyz = GammaToLinearSpace(hm.xyz);
-
                 float h = UnpackHeightmap(hm);
                 h *= _Height_Scale; // 0.155 
                 return PackHeightmap(h);
