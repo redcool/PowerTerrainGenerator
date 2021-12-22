@@ -185,9 +185,8 @@ namespace PowerUtilities
         {
             var absExportFolder = PathTools.GetAssetAbsPath(assetFoler);
 
-            var res = (int)tileMapResolution;
-            var width = gridBoundMaxNormalized.x * res;
-            var height = gridBoundMaxNormalized.z * res;
+            var width = gridBoundMaxNormalized.x * tileMapResolution;
+            var height = gridBoundMaxNormalized.z * tileMapResolution;
 
             if(width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize)
             {
@@ -198,7 +197,11 @@ namespace PowerUtilities
             foreach (var item in terrains)
             {
                 var gridCoord = CalcGridCoord(item);
-                item.terrainData.FillTextureWithHeightmap(bigMap, gridCoord.x * res, gridCoord.z * res);
+                //item.terrainData.FillTextureWithHeightmap(bigMap, , gridCoord.z * res);
+
+                var destX = gridCoord.x * tileMapResolution;
+                var destY = gridCoord.z * tileMapResolution;
+                bigMap.BlitFrom(item.terrainData.heightmapTexture, destX, destY, tileMapResolution, tileMapResolution);
             }
 
             File.WriteAllBytes($"{absExportFolder}/Heightmap.tga", bigMap.EncodeToTGA());
@@ -224,16 +227,19 @@ namespace PowerUtilities
 
             for (int i = 0; i < terrains.Length; i++)
             {
-                var t =  terrains[i];
+                var t = terrains[i];
                 var td = t.terrainData;
                 var gridCoord = CalcGridCoord(t);
 
+                // block info
+                var destX = gridCoord.x * tileMapResolution;
+                var destY = gridCoord.z * tileMapResolution;
                 // read alphamaps
                 for (int j = 0; j < td.alphamapTextureCount; j++)
                 {
                     var alphamap = t.terrainData.GetAlphamapTexture(j);
-                    bigMaps[j].SetPixels(gridCoord.x * tileMapResolution, gridCoord.z * tileMapResolution, tileMapResolution, tileMapResolution, alphamap.GetPixels());
 
+                    bigMaps[j].BlitFrom(alphamap, destX, destY, tileMapResolution, tileMapResolution);
                 }
             }
 

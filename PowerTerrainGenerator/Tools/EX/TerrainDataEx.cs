@@ -117,19 +117,9 @@ namespace PowerUtilities
         {
             var hmSize = td.heightmapResolution - 1;
             var tex = new Texture2D(hmSize, hmSize, TextureFormat.R16, false, true);
-            FillTextureWithHeightmap(td, tex, 0, 0);
+            tex.BlitFrom(td.heightmapTexture);
             return tex;
         }
-
-        public static void FillTextureWithHeightmap(this TerrainData td,Texture2D bigTexture,int destX,int destY)
-        {
-            var hmSize = td.heightmapResolution - 1;
-            Graphics.SetRenderTarget(td.heightmapTexture);
-            bigTexture.ReadPixels(new Rect(0, 0, hmSize, hmSize), destX, destY);
-
-            Graphics.SetRenderTarget(null);
-        }
-
 
         /// <summary>
         /// 

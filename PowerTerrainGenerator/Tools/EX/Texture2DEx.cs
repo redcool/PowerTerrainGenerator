@@ -136,5 +136,21 @@ namespace PowerUtilities
             var colors = Enumerable.Repeat(c, tex.height).ToArray();
             tex.SetPixels(columnId, 0, 1, tex.height, colors);
         }
+
+        /// <summary>
+        /// blit from src , write to (destX,destY),(blockWidth,blockHeight)
+        /// </summary>
+        /// <param name="tex"></param>
+        /// <param name="src"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="blockWidth"></param>
+        /// <param name="blockHeight"></param>
+        public static void BlitFrom(this Texture2D tex,Texture src,int destX=0,int destY=0,int blockWidth=-1,int blockHeight=-1)
+        {
+            GraphicsEx.Blit(src, tex,destX,destY,blockWidth,blockHeight);
+        }
+
+        
     }
 }
