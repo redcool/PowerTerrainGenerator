@@ -219,7 +219,7 @@ namespace PowerUtilities
             var bigMaps = new Texture2D[terrains[0].terrainData.alphamapTextureCount];
             for (int i = 0; i < bigMaps.Length; i++)
             {
-                bigMaps[i] = new Texture2D(width, height, TextureFormat.R16, false, true);
+                bigMaps[i] = new Texture2D(width, height, TextureFormat.RGBA32, false, true);
             }
 
             for (int i = 0; i < terrains.Length; i++)
