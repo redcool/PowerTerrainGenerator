@@ -14,16 +14,16 @@ namespace PowerUtilities
         /// </summary>
         /// <param name="src"></param>
         /// <param name="dest"></param>
-        public static void Blit(Texture src, Texture2D dest,int destX=0,int destY=0,int destBlockWidth=-1,int destBlockHeight=-1)
+        public static void Blit(Texture src, Texture2D dest, int destX = 0, int destY = 0, int destBlockWidth = -1, int destBlockHeight = -1)
         {
             if (!src || !dest)
                 return;
 
-            var width = destBlockWidth == -1 ?  dest.width : destBlockWidth;
-            var height = destBlockHeight == -1 ? dest.height : destBlockHeight;
+            var width = destBlockWidth < 1 ? dest.width : destBlockWidth;
+            var height = destBlockHeight < 1 ? dest.height : destBlockHeight;
 
             var rt = RenderTexture.GetTemporary(width, height, 0);
-            
+
             Graphics.Blit(src, rt);
 
             //Graphics.SetRenderTarget(rt);

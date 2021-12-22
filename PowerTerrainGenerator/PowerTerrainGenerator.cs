@@ -60,6 +60,10 @@ namespace PowerUtilities
         public string prefabSavePath = "Assets/Terrain";
         public int tileX;
         public int tileZ;
+
+        // export heightmap,controlmaps
+        public TextureResolution exportTileHeightmapResolution = TextureResolution.x512;
+        public TextureResolution exportTileControlmapResolution = TextureResolution.x512;
     }
 }
 #endif

@@ -113,9 +113,9 @@ namespace PowerUtilities
         /// </summary>
         /// <param name="td"></param>
         /// <returns></returns>
-        public static Texture2D GetHeightmap(this TerrainData td)
+        public static Texture2D GetHeightmap(this TerrainData td,int resolution = -1)
         {
-            var hmSize = td.heightmapResolution - 1;
+            var hmSize = resolution <= 0 ? td.heightmapResolution - 1 : resolution;
             var tex = new Texture2D(hmSize, hmSize, TextureFormat.R16, false, true);
             tex.BlitFrom(td.heightmapTexture);
             return tex;

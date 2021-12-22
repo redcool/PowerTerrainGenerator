@@ -254,32 +254,51 @@ namespace PowerUtilities
                         EditorGUILayout.LabelField("warning : generatedTerrainList is empty");
                     }, Color.yellow, Color.yellow);
                 }
-
+                // rename
                 EditorGUILayout.BeginVertical("Box");
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(inst.nameTemplate)));
-                if (GUILayout.Button("Rename"))
                 {
-                    RenameGeneratedTerrains(inst.generatedTerrainList, inst.heightMapCountInRow, inst.nameTemplate);
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(inst.nameTemplate)));
+                    if (GUILayout.Button("Rename"))
+                    {
+                        RenameGeneratedTerrains(inst.generatedTerrainList, inst.heightMapCountInRow, inst.nameTemplate);
+                    }
                 }
                 EditorGUILayout.EndVertical();
 
-
+                //save prefabs
                 EditorGUILayout.BeginVertical("Box");
                 if (GUILayout.Button("Save terrain prefabs"))
                 {
                     RenameGeneratedTerrains(inst.generatedTerrainList, inst.heightMapCountInRow, inst.nameTemplate);
-                    SavePrefabs(inst.generatedTerrainList,inst.prefabSavePath,inst.isCreateSubFolder);
+                    SavePrefabs(inst.generatedTerrainList, inst.prefabSavePath, inst.isCreateSubFolder);
                 }
                 EditorGUILayout.EndVertical();
 
                 EditorGUILayout.BeginVertical("Box");
-                if(GUILayout.Button("Export Heightmaps"))
                 {
-                    ExportTerrainInfos(inst.generatedTerrainList, inst.prefabSavePath,"TerrainHeightmaps", inst.isCreateSubFolder,inst.heightMapCountInRow,ExportHeightmap);
-                }
-                if(GUILayout.Button("Export Controlmaps"))
-                {
-                    ExportTerrainInfos(inst.generatedTerrainList, inst.prefabSavePath, "TerrainControlmaps", inst.isCreateSubFolder, inst.heightMapCountInRow, ExportControlmaps);
+                    // export heightmap
+                    EditorGUILayout.BeginHorizontal("");
+                    {
+                        EditorGUILayout.LabelField("Tile Heightmap Res:", GUILayout.Width(200));
+                        inst.exportTileHeightmapResolution = (TextureResolution)EditorGUILayout.EnumPopup(inst.exportTileHeightmapResolution);
+                        if (GUILayout.Button("Export Heightmaps"))
+                        {
+                            ExportTerrainInfos(inst.generatedTerrainList, inst.prefabSavePath, "TerrainHeightmaps", inst.isCreateSubFolder, (int)inst.exportTileHeightmapResolution, ExportHeightmap);
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    // export controlmap
+                    EditorGUILayout.BeginHorizontal("");
+                    {
+                        EditorGUILayout.LabelField("Tile Controlmap Res:", GUILayout.Width(200));
+                        inst.exportTileControlmapResolution = (TextureResolution)EditorGUILayout.EnumPopup(inst.exportTileControlmapResolution);
+                        if (GUILayout.Button("Export Controlmaps"))
+                        {
+                            ExportTerrainInfos(inst.generatedTerrainList, inst.prefabSavePath, "TerrainControlmaps", inst.isCreateSubFolder, (int)inst.exportTileControlmapResolution, ExportControlmaps);
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
                 }
                 EditorGUILayout.EndVertical();
             }
@@ -287,8 +306,8 @@ namespace PowerUtilities
 
         }
 
-        private void ExportTerrainInfos(List<Terrain> generatedTerrainList,string assetFolder,string assetSubFolder,bool isCreateSubFolder,int heightmapCountInRow,
-            Action<Terrain,string> exportAction)
+        private void ExportTerrainInfos(List<Terrain> generatedTerrainList,string assetFolder,string assetSubFolder,bool isCreateSubFolder,int resolution,
+            Action<Terrain,string,int> exportAction)
         {
             if (generatedTerrainList == null || generatedTerrainList.Count == 0)
             {
@@ -305,7 +324,7 @@ namespace PowerUtilities
             for (int i = 0; i < generatedTerrainList.Count; i++)
             {
                 var terrain = generatedTerrainList[i];
-                exportAction?.Invoke(terrain, absExportFolder);
+                exportAction?.Invoke(terrain, absExportFolder,resolution);
 
                 EditorUtility.DisplayProgressBar("Export Heightmaps", "", i / (float)generatedTerrainList.Count);
             }
@@ -314,20 +333,23 @@ namespace PowerUtilities
             EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(exportFolder));
         }
 
-        static void ExportHeightmap(Terrain terrain, string absExportFolder)
+        static void ExportHeightmap(Terrain terrain, string absExportFolder,int resolution)
         {
             var td = terrain.terrainData;
-            var tex = td.GetHeightmap();
+            var tex = td.GetHeightmap(resolution);
             File.WriteAllBytes($"{absExportFolder}/{terrain.name}.tga", tex.EncodeToTGA());
         }
 
-        static void ExportControlmaps(Terrain terrain, string absExportFolder)
+        static void ExportControlmaps(Terrain terrain, string absExportFolder,int resolution)
         {
             var td = terrain.terrainData;
 
             for (int j = 0; j < td.alphamapTextureCount; j++)
             {
-                var tex = td.GetAlphamapTexture(j);
+                var alphamap = td.GetAlphamapTexture(j);
+                var tex = new Texture2D(resolution, resolution);
+                tex.BlitFrom(alphamap);
+
                 File.WriteAllBytes($"{absExportFolder}/{terrain.name}_{j}.tga", tex.EncodeToTGA());
             }
         }
