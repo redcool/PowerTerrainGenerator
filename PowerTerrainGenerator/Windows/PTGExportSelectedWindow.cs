@@ -189,6 +189,11 @@ namespace PowerUtilities
             var width = gridBoundMaxNormalized.x * res;
             var height = gridBoundMaxNormalized.z * res;
 
+            if(width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize)
+            {
+                throw new Exception("heightmap out of max texture size (16384)");
+            }
+
             var bigMap = new Texture2D(width, height, TextureFormat.R16, false, true);
             foreach (var item in terrains)
             {
@@ -205,6 +210,11 @@ namespace PowerUtilities
 
             var width = gridBoundMaxNormalized.x * tileMapResolution;
             var height = gridBoundMaxNormalized.z * tileMapResolution;
+
+            if (width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize)
+            {
+                throw new Exception("big controlmap out of max texture size (16384)");
+            }
 
             var bigMaps = new Texture2D[terrains[0].terrainData.alphamapTextureCount];
             for (int i = 0; i < bigMaps.Length; i++)
