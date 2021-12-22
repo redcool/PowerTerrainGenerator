@@ -7,14 +7,19 @@ namespace PowerUtilities
     using UnityEditor;
     using UnityEngine;
     using System.IO;
-
+    /// <summary>
+    /// export selected terrain's controlMaps and heightmaps
+    /// </summary>
     public class PTGExportSelectedWindow : EditorWindow
     {
-        string exportFolder = "Assets/Terrain";
+        string exportFolder = "Assets/TerrainMaps";
         private Vector2 scrollPos;
 
         TextureResolution tileHeightmapResolution = TextureResolution.x512;
         TextureResolution tileControlmapResolution = TextureResolution.x512;
+
+        Vector3Int gridBoundMin, gridBoundMax,gridBoundMaxNormalized;
+        string heightmapFolder, controlmapsFolder;
 
         [MenuItem(PowerTerrainGeneratorMenu.ROOT_PATH + "/Terrain/ExportSelected")]
         static void ShowExportWindow()
@@ -47,17 +52,15 @@ namespace PowerUtilities
 
         private void DrawExportUI(Terrain[] terrains)
         {
-            int x, z;
-            CalcRowColumns(terrains, out x, out z);
-            EditorGUILayout.LabelField($"{x} - {z}");
-
+            CalcGridCoordBounds(terrains);
+            
             DrawSelectedTerrainUI(terrains);
 
             DrawHeightmapUI();
 
             DrawControlmapUI();
 
-            DrawTerrainExportUI(terrains, x, z);
+            DrawTerrainExportUI(terrains);
 
         }
         void DrawControlmapUI()
@@ -76,7 +79,7 @@ namespace PowerUtilities
             GUILayout.EndHorizontal();
         }
 
-        void DrawTerrainExportUI(Terrain[] terrains, int x, int z)
+        void DrawTerrainExportUI(Terrain[] terrains)
         {
             GUILayout.BeginHorizontal("Box");
             EditorGUILayout.PrefixLabel("Export Folder:");
@@ -88,7 +91,9 @@ namespace PowerUtilities
 
             if (GUILayout.Button("Export"))
             {
-                ExportTerrains(terrains, x, z, exportFolder);
+                CreateFolders(exportFolder, out heightmapFolder, out controlmapsFolder);
+
+                ExportTerrains(terrains);
             }
         }
 
@@ -103,12 +108,46 @@ namespace PowerUtilities
             EditorGUILayout.EndScrollView();
         }
 
-        private static void CalcRowColumns(Terrain[] terrains, out int x, out int z)
+        void CalcGridCoordBounds(Terrain[] terrains)
         {
-            var end = terrains[terrains.Length - 1];
-            var td = terrains[0].terrainData;
-            x = (int)(end.transform.position.x / td.size.x) + 1;
-            z = (int)(end.transform.position.z / td.size.z) + 1;
+            // find (min,max )world position
+            var worldPosMin = new Vector3();
+            var worldPosMax = new Vector3();
+
+            for (int i = 0; i < terrains.Length; i++)
+            {
+                var t = terrains[i];
+                if(i == 0)
+                {
+                    worldPosMax = worldPosMin = t.transform.position;
+                    continue;
+                }
+
+                var pos = t.transform.position;
+                if (pos.x < worldPosMin.x)
+                    worldPosMin.x = pos.x;
+                if (pos.z < worldPosMin.z)
+                    worldPosMin.z = pos.z;
+
+                if (pos.x > worldPosMax.x)
+                    worldPosMax.x = pos.x;
+                if (pos.z > worldPosMax.z)
+                    worldPosMax.z = pos.z;
+            }
+
+            // transfer to grid coord
+            var terrainSize = terrains[0].terrainData.size;
+
+            gridBoundMin = new Vector3Int();
+            gridBoundMax = new Vector3Int();
+
+            gridBoundMax.x = (int)(worldPosMax.x / terrainSize.x) + 1;
+            gridBoundMax.z = (int)(worldPosMax.z / terrainSize.z) + 1;
+            gridBoundMin.x = (int)(worldPosMin.x / terrainSize.x);
+            gridBoundMin.z = (int)(worldPosMin.z / terrainSize.z);
+
+            gridBoundMaxNormalized.x = gridBoundMax.x - gridBoundMin.x;
+            gridBoundMaxNormalized.z = gridBoundMax.z - gridBoundMin.z;
         }
 
         Vector3Int CalcGridCoord(Terrain t)
@@ -118,32 +157,37 @@ namespace PowerUtilities
             int x = (int)(pos.x / size.x);
             var y = (int)(pos.y / size.y);
             var z = (int)(pos.z / size.z);
-            return new Vector3Int(x, y, z);
+            var coord = new Vector3Int(x - gridBoundMin.x, y, z - gridBoundMin.z);
+            return coord;
         }
 
         void CreateFolders(string assetFolder, out string heightmapsFolder, out string controlmapsFolder)
         {
             PathTools.CreateAbsFolderPath(assetFolder);
-            heightmapsFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "Heightmaps"));
-            controlmapsFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "Controlmaps"));
+            AssetDatabase.Refresh();
+
+            heightmapsFolder = assetFolder;
+            controlmapsFolder = assetFolder;
+
+            //heightmapsFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "Heightmaps"));
+            //controlmapsFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "Controlmaps"));
         }
 
-        private void ExportTerrains(Terrain[] terrains, int countX, int countZ, string assetFolder)
+        private void ExportTerrains(Terrain[] terrains)
         {
-            string heightmapFolder, controlmapsFolder;
-            CreateFolders(assetFolder, out heightmapFolder, out controlmapsFolder);
+            ExportHeightmap(terrains, (int)tileHeightmapResolution, heightmapFolder);
+            ExportControlmap(terrains, (int)tileControlmapResolution, controlmapsFolder);
 
-            ExportHeightmap(terrains, countX, countZ, (int)tileHeightmapResolution, heightmapFolder);
-            ExportControlmap(terrains, countX, countZ, (int)tileControlmapResolution, controlmapsFolder);
+            AssetDatabase.Refresh();
         }
 
-        void ExportHeightmap(Terrain[] terrains, int countX, int countZ,int tileMapResolution, string assetFoler)
+        void ExportHeightmap(Terrain[] terrains,int tileMapResolution, string assetFoler)
         {
             var absExportFolder = PathTools.GetAssetAbsPath(assetFoler);
 
             var res = (int)tileMapResolution;
-            var width = countX * res;
-            var height = countZ * res;
+            var width = gridBoundMaxNormalized.x * res;
+            var height = gridBoundMaxNormalized.z * res;
 
             var bigMap = new Texture2D(width, height, TextureFormat.R16, false, true);
             foreach (var item in terrains)
@@ -155,12 +199,12 @@ namespace PowerUtilities
             File.WriteAllBytes($"{absExportFolder}/Heightmap.tga", bigMap.EncodeToTGA());
         }
 
-        void ExportControlmap(Terrain[] terrains, int countX, int countZ, int tileMapResolution, string assetFoler)
+        void ExportControlmap(Terrain[] terrains, int tileMapResolution, string assetFoler)
         {
             var absExportFolder = PathTools.GetAssetAbsPath(assetFoler);
 
-            var width = countX * tileMapResolution;
-            var height = countZ * tileMapResolution;
+            var width = gridBoundMaxNormalized.x * tileMapResolution;
+            var height = gridBoundMaxNormalized.z * tileMapResolution;
 
             var bigMaps = new Texture2D[terrains[0].terrainData.alphamapTextureCount];
             for (int i = 0; i < bigMaps.Length; i++)
