@@ -194,6 +194,11 @@ namespace PowerUtilities
             }
 
             var bigMap = new Texture2D(width, height, TextureFormat.R16, false, true);
+
+            var blitMat = TerrainDataEx.GetBlitHeightmapMaterial();
+            blitMat.SetFloat("_Height_Offset", 0 * TerrainDataEx.normalizedHeightScale);
+            blitMat.SetFloat("_Height_Scale",1.0f/ TerrainDataEx.normalizedHeightScale);
+
             foreach (var item in terrains)
             {
                 var gridCoord = CalcGridCoord(item);
@@ -201,7 +206,7 @@ namespace PowerUtilities
 
                 var destX = gridCoord.x * tileMapResolution;
                 var destY = gridCoord.z * tileMapResolution;
-                bigMap.BlitFrom(item.terrainData.heightmapTexture, destX, destY, tileMapResolution, tileMapResolution);
+                bigMap.BlitFrom(item.terrainData.heightmapTexture, destX, destY, tileMapResolution, tileMapResolution, blitMat);
             }
 
             File.WriteAllBytes($"{absExportFolder}/Heightmap.tga", bigMap.EncodeToTGA());
