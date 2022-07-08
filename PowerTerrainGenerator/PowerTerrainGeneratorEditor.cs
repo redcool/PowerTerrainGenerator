@@ -187,8 +187,11 @@ namespace PowerUtilities
             //Create folder
             PathTools.CreateAbsFolderPath(assetFolder);
             var dataFolder = assetFolder;
-            if(isCreateSubFolder)
+            if (isCreateSubFolder)
+            {
                 dataFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.CreateFolder(assetFolder, "TerrainDatas"));
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            }
 
             for (int i = 0; i < terrainList.Count; i++)
             {
@@ -203,6 +206,7 @@ namespace PowerUtilities
                     continue;
 
                 var dataPath = $"{dataFolder}/{terrain.name}.asset";
+                
                 AssetDatabase.CreateAsset(td, dataPath);
 
                 // read from disk
