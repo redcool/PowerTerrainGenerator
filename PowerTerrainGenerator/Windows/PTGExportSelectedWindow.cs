@@ -1,5 +1,6 @@
 namespace PowerUtilities
 {
+#if UNITY_EDITOR
     using System;
     using System.Linq;
     using System.Collections;
@@ -18,7 +19,7 @@ namespace PowerUtilities
         TextureResolution tileHeightmapResolution = TextureResolution.x512;
         TextureResolution tileControlmapResolution = TextureResolution.x512;
 
-        Vector3Int gridBoundMin, gridBoundMax,gridBoundMaxNormalized;
+        Vector3Int gridBoundMin, gridBoundMax, gridBoundMaxNormalized;
         string heightmapFolder, controlmapsFolder;
 
         [MenuItem(PowerTerrainGeneratorMenu.ROOT_PATH + "/Terrain/ExportSelected")]
@@ -53,7 +54,7 @@ namespace PowerUtilities
         private void DrawExportUI(Terrain[] terrains)
         {
             CalcGridCoordBounds(terrains);
-            
+
             DrawSelectedTerrainUI(terrains);
 
             DrawHeightmapUI();
@@ -117,7 +118,7 @@ namespace PowerUtilities
             for (int i = 0; i < terrains.Length; i++)
             {
                 var t = terrains[i];
-                if(i == 0)
+                if (i == 0)
                 {
                     worldPosMax = worldPosMin = t.transform.position;
                     continue;
@@ -181,14 +182,14 @@ namespace PowerUtilities
             AssetDatabase.Refresh();
         }
 
-        void ExportHeightmap(Terrain[] terrains,int tileMapResolution, string assetFoler)
+        void ExportHeightmap(Terrain[] terrains, int tileMapResolution, string assetFoler)
         {
             var absExportFolder = PathTools.GetAssetAbsPath(assetFoler);
 
             var width = gridBoundMaxNormalized.x * tileMapResolution;
             var height = gridBoundMaxNormalized.z * tileMapResolution;
 
-            if(width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize)
+            if (width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize)
             {
                 throw new Exception("heightmap out of max texture size (16384)");
             }
@@ -197,7 +198,7 @@ namespace PowerUtilities
 
             var blitMat = TerrainDataEx.GetBlitHeightmapMaterial();
             blitMat.SetFloat("_Height_Offset", 0 * TerrainDataEx.normalizedHeightScale);
-            blitMat.SetFloat("_Height_Scale",1.0f/ TerrainDataEx.normalizedHeightScale);
+            blitMat.SetFloat("_Height_Scale", 1.0f/ TerrainDataEx.normalizedHeightScale);
 
             foreach (var item in terrains)
             {
@@ -254,4 +255,6 @@ namespace PowerUtilities
             }
         }
     }
+#endif
+
 }
