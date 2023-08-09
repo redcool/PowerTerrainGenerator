@@ -93,7 +93,7 @@ namespace PowerUtilities
                     }
                     if (GUILayout.Button("Save Heightmaps"))
                     {
-                        TextureTools.SaveTexturesDialog(inst.splitedHeightmapList, inst.heightMapCountInRow);
+                        EditorTextureTools.SaveTexturesDialog(inst.splitedHeightmapList, inst.heightMapCountInRow);
                     }
                     EditorGUILayout.EndHorizontal();
                 }
@@ -455,7 +455,7 @@ namespace PowerUtilities
                         EditorUtility.ClearProgressBar();
                     }
                     if (GUILayout.Button("Save ControlMaps"))
-                        TextureTools.SaveTexturesDialog(inst.splitedControlMaps, inst.controlMapCountInRow);
+                        EditorTextureTools.SaveTexturesDialog(inst.splitedControlMaps, inst.controlMapCountInRow);
 
                 }
                 EditorGUILayout.EndHorizontal();
